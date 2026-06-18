@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Diagnóstico · Atención Pediátrica Crítica</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+:root{
+  --bg:#F7F6F3;--surface:#fff;--border:#E2DFD8;--text:#1A1917;
+  --muted:#6B6760;--faint:#A09C97;
+  --red:#C0392B;--red-s:#FDECEA;--red-m:#E8B4AF;
+  --green:#1E6B45;--green-s:#E8F5EE;
+  --blue:#1B4F8A;--blue-s:#EBF2FB;
+  --r:10px;--sh:0 2px 12px rgba(0,0,0,.07);--tr:.15s ease
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;min-height:100vh}
+
+/* CONFIG BANNER */
+.cfg-banner{background:#FFF3CD;border-bottom:2px solid #F0C040;padding:14px 24px;display:flex;align-items:center;gap:12px;font-size:13px;color:#7A5C00}
+.cfg-banner strong{font-weight:600}
+.cfg-banner.hidden{display:none}
+
+.hdr{background:var(--text);color:#fff;padding:28px 32px 24px;position:relative;overflow:hidden}
+.hdr::after{content:'▷';font-size:180px;position:absolute;right:-20px;top:-30px;opacity:.05;line-height:1;pointer-events:none}
+.hlbl{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--red-m);margin-bottom:8px}
+.hdr h1{font-family:'DM Serif Display',serif;font-size:clamp(20px,4vw,30px);font-weight:400;line-height:1.2;max-width:520px;margin-bottom:10px}
+.hdr p{font-size:13px;color:rgba(255,255,255,.55);max-width:480px}
+
+.pbwrap{background:var(--border);height:3px}
+.pbfill{background:var(--red);height:3px;width:0%;transition:width .4s ease}
+.pinfo{display:flex;justify-content:space-between;padding:10px 32px;background:var(--surface);border-bottom:1px solid var(--border);font-size:12px;color:var(--faint);font-family:'JetBrains Mono',monospace}
+.pinfo span:last-child{color:var(--red);font-weight:500}
+
+.wrap{max-width:720px;margin:0 auto;padding:32px 20px 60px}
+.sh{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.si{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.si-r{background:var(--red-s)}.si-b{background:var(--blue-s)}.si-g{background:var(--green-s)}
+.stitle{font-family:'DM Serif Display',serif;font-size:18px;font-weight:400}
+.ssub{font-size:12px;color:var(--faint);margin-top:2px}
+.sgap{margin-top:36px}
+
+.qcard{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-bottom:14px;box-shadow:var(--sh);transition:border-color var(--tr)}
+.qcard.done{border-color:var(--red-m)}
+.qnum{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--faint);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.qtext{font-size:14px;font-weight:500;line-height:1.5;margin-bottom:14px}
+.qnote{font-size:12px;color:var(--faint);font-style:italic;margin-bottom:12px;margin-top:-8px}
+
+select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;color:var(--text);background:var(--bg);outline:none;cursor:pointer;transition:border-color var(--tr);-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23A09C97' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+select:focus{border-color:var(--red)}
+textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;color:var(--text);background:var(--bg);outline:none;resize:vertical;min-height:80px;transition:border-color var(--tr)}
+textarea:focus{border-color:var(--red)}
+
+.lkrow{display:flex;gap:6px}
+.lkbtn{flex:1;padding:10px 4px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:500;color:var(--faint);text-align:center;transition:all var(--tr);-webkit-tap-highlight-color:transparent;user-select:none}
+.lkbtn:hover{border-color:var(--red);color:var(--red)}
+.lkbtn.sel{background:var(--red);border-color:var(--red);color:#fff}
+.lklabels{display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:var(--faint);font-style:italic}
+
+.mcqbtn{display:flex;align-items:flex-start;gap:10px;width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;margin-bottom:7px;cursor:pointer;background:var(--surface);text-align:left;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--muted);transition:all var(--tr);-webkit-tap-highlight-color:transparent;line-height:1.4}
+.mcqbtn:hover{border-color:var(--red);color:var(--text)}
+.mcqbtn.sel{border-color:var(--red);background:var(--red-s);color:var(--red);font-weight:500}
+.bullet{width:18px;height:18px;border:2px solid var(--border);border-radius:50%;flex-shrink:0;margin-top:1px;transition:all var(--tr);display:flex;align-items:center;justify-content:center}
+.mcqbtn.sel .bullet{background:var(--red);border-color:var(--red)}
+.mcqbtn.sel .bullet::after{content:'';width:6px;height:6px;background:#fff;border-radius:50%;display:block}
+
+.submitbox{margin-top:36px;padding:24px;background:var(--text);border-radius:var(--r);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.submitbox p{font-size:13px;color:rgba(255,255,255,.55);max-width:340px}
+.btnok{background:var(--red);color:#fff;border:none;padding:13px 28px;border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all var(--tr);white-space:nowrap;min-width:180px}
+.btnok:hover{background:#a93226;transform:translateY(-1px)}
+.btnok:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.errmsg{background:var(--red-s);color:var(--red);border:1px solid var(--red-m);border-radius:8px;padding:12px 16px;font-size:13px;margin-top:14px;display:none}
+
+#thanks{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 20px;min-height:70vh}
+.chk{width:64px;height:64px;background:var(--green-s);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 20px}
+#thanks h2{font-family:'DM Serif Display',serif;font-size:28px;font-weight:400;margin-bottom:10px}
+#thanks p{color:var(--muted);max-width:380px}
+
+@media(max-width:520px){
+  .hdr{padding:20px 16px}
+  .wrap{padding:20px 14px 50px}
+  .lkbtn{font-size:15px;padding:8px 2px}
+  .submitbox{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<!-- Banner de configuración — se oculta cuando la API key está puesta -->
+<div class="cfg-banner" id="cfgBanner">
+  ⚙️ <strong>Configuración pendiente:</strong> Abra el archivo en un editor de texto y reemplace <code>TU_API_KEY_JSONBIN</code> y <code>TU_BIN_ID</code> con sus valores reales. Ver guía incluida.
+</div>
+
+<div id="fview">
+  <div class="hdr">
+    <div class="hlbl">Hospital Regional de Zipaquirá · Servicio de Urgencias</div>
+    <h1>Diagnóstico: Atención al Paciente Pediátrico Crítico</h1>
+    <p>Instrumento para el equipo de Urgencias · Anónimo · ~10 min</p>
+  </div>
+  <div class="pbwrap"><div class="pbfill" id="pb"></div></div>
+  <div class="pinfo"><span>Completado</span><span id="ptxt">0 / 26 preguntas</span></div>
+
+  <div class="wrap">
+
+    <div class="sh"><div class="si si-b">🪪</div><div><div class="stitle">Perfil profesional</div><div class="ssub">Contexto y experiencia</div></div></div>
+
+    <div class="qcard" id="qp1">
+      <div class="qnum">PERFIL · 01</div>
+      <div class="qtext">¿Cuál es su rol en el servicio de urgencias?</div>
+      <select id="p1" onchange="onSelect('p1','qp1')">
+        <option value="">— Seleccione —</option>
+        <option value="medico">Médico general</option>
+        <option value="jefe_enf">Jefe de enfermería</option>
+        <option value="terapeuta">Terapeuta respiratorio</option>
+        <option value="otro">Otro</option>
+      </select>
+    </div>
+
+    <div class="qcard" id="qp2">
+      <div class="qnum">PERFIL · 02</div>
+      <div class="qtext">¿Cuántos años lleva trabajando en urgencias?</div>
+      <select id="p2" onchange="onSelect('p2','qp2')">
+        <option value="">— Seleccione —</option>
+        <option value="<1">Menos de 1 año</option>
+        <option value="1-3">1 a 3 años</option>
+        <option value="4-7">4 a 7 años</option>
+        <option value=">7">Más de 7 años</option>
+      </select>
+    </div>
+
+    <div class="qcard" id="qp3">
+      <div class="qnum">PERFIL · 03</div>
+      <div class="qtext">En el último año, ¿con qué frecuencia ha participado en la atención de un paciente pediátrico en condición crítica o paro?</div>
+      <select id="p3" onchange="onSelect('p3','qp3')">
+        <option value="">— Seleccione —</option>
+        <option value="nunca">Nunca</option>
+        <option value="1-2">1 a 2 veces</option>
+        <option value="3-5">3 a 5 veces</option>
+        <option value=">5">Más de 5 veces</option>
+      </select>
+    </div>
+
+    <div class="qcard" id="qp4">
+      <div class="qnum">PERFIL · 04</div>
+      <div class="qtext">¿Ha recibido algún curso formal de reanimación pediátrica (PALS, APLS o equivalente)?</div>
+      <button class="mcqbtn" data-group="p4" data-val="vigente" onclick="onMCQ(this)"><div class="bullet"></div>Sí, vigente</button>
+      <button class="mcqbtn" data-group="p4" data-val="vencido" onclick="onMCQ(this)"><div class="bullet"></div>Sí, pero vencido</button>
+      <button class="mcqbtn" data-group="p4" data-val="no" onclick="onMCQ(this)"><div class="bullet"></div>No</button>
+    </div>
+
+    <div class="sgap"></div>
+    <div class="sh"><div class="si si-r">❤️</div><div><div class="stitle">Saber ser · Actitudes y estado emocional</div><div class="ssub">1 = En desacuerdo · 5 = De acuerdo</div></div></div>
+
+    <div class="qcard" id="qa1">
+      <div class="qnum">SABER SER · 01</div>
+      <div class="qtext">Cuando llega un niño en condición crítica, siento una respuesta emocional intensa (nerviosismo, parálisis) que afecta mi desempeño inicial.</div>
+      <div class="lkrow" data-group="a1"></div>
+      <div class="lklabels"><span>En desacuerdo</span><span>De acuerdo</span></div>
+    </div>
+
+    <div class="qcard" id="qa2">
+      <div class="qnum">SABER SER · 02</div>
+      <div class="qtext">Me siento seguro/a para asumir el rol de líder del equipo durante la reanimación de un lactante o niño.</div>
+      <div class="lkrow" data-group="a2"></div>
+      <div class="lklabels"><span>En desacuerdo</span><span>De acuerdo</span></div>
+    </div>
+
+    <div class="qcard" id="qa3">
+      <div class="qnum">SABER SER · 03</div>
+      <div class="qtext">El miedo a cometer errores frente a mis colegas me inhibe durante la atención pediátrica crítica.</div>
+      <div class="lkrow" data-group="a3"></div>
+      <div class="lklabels"><span>En desacuerdo</span><span>De acuerdo</span></div>
+    </div>
+
+    <div class="qcard" id="qa4">
+      <div class="qnum">SABER SER · 04</div>
+      <div class="qtext">Después de una reanimación pediátrica, suelo procesar emocionalmente lo ocurrido de forma saludable.</div>
+      <div class="lkrow" data-group="a4"></div>
+      <div class="lklabels"><span>En desacuerdo</span><span>De acuerdo</span></div>
+    </div>
+
+    <div class="qcard" id="qa5">
+      <div class="qnum">SABER SER · 05</div>
+      <div class="qtext">Considero que el entrenamiento puede reducir significativamente el miedo que siento ante estos escenarios.</div>
+      <div class="lkrow" data-group="a5"></div>
+      <div class="lklabels"><span>En desacuerdo</span><span>De acuerdo</span></div>
+    </div>
+
+    <div class="qcard" id="qa6">
+      <div class="qnum">SABER SER · 06</div>
+      <div class="qtext">Prefiero un rol secundario en lugar del protagónico cuando hay un paciente pediátrico crítico, incluso si soy el más idóneo disponible.</div>
+      <div class="lkrow" data-group="a6"></div>
+      <div class="lklabels"><span>En desacuerdo</span><span>De acuerdo</span></div>
+    </div>
+
+    <div class="qcard" id="qa7">
+      <div class="qnum">SABER SER · 07</div>
+      <div class="qtext">Estoy dispuesto/a a participar activamente en un programa de preparación para mejorar mi respuesta ante estas situaciones.</div>
+      <div class="lkrow" data-group="a7"></div>
+      <div class="lklabels"><span>En desacuerdo</span><span>De acuerdo</span></div>
+    </div>
+
+    <div class="qcard" id="qa8">
+      <div class="qnum">SABER SER · 08 — Abierta</div>
+      <div class="qtext">¿Qué es lo que más le genera inseguridad o miedo al atender un niño en condición crítica?</div>
+      <textarea id="a8" rows="3" placeholder="Escriba libremente…" oninput="onText('a8','qa8')"></textarea>
+    </div>
+
+    <div class="sgap"></div>
+    <div class="sh"><div class="si si-b">🎯</div><div><div class="stitle">Autoconfianza · Percepción de capacidades</div><div class="ssub">1 = Sin confianza · 5 = Muy confiado/a</div></div></div>
+
+    <div class="qcard" id="qb1">
+      <div class="qnum">CONFIANZA · 01</div>
+      <div class="qtext">Reconocer signos de falla respiratoria inminente en un niño (tiraje, quejido, saturación).</div>
+      <div class="lkrow" data-group="b1"></div>
+      <div class="lklabels"><span>Sin confianza</span><span>Muy confiado/a</span></div>
+    </div>
+
+    <div class="qcard" id="qb2">
+      <div class="qnum">CONFIANZA · 02</div>
+      <div class="qtext">Realizar una secuencia de RCP de alta calidad (compresiones + ventilación) en un lactante o niño.</div>
+      <div class="lkrow" data-group="b2"></div>
+      <div class="lklabels"><span>Sin confianza</span><span>Muy confiado/a</span></div>
+    </div>
+
+    <div class="qcard" id="qb3">
+      <div class="qnum">CONFIANZA · 03</div>
+      <div class="qtext">Calcular rápidamente la dosis de adrenalina en un paro pediátrico.</div>
+      <div class="lkrow" data-group="b3"></div>
+      <div class="lklabels"><span>Sin confianza</span><span>Muy confiado/a</span></div>
+    </div>
+
+    <div class="qcard" id="qb4">
+      <div class="qnum">CONFIANZA · 04</div>
+      <div class="qtext">Asegurar la vía aérea de un niño (posicionamiento, bolsa-mascarilla, intubación de urgencia).</div>
+      <div class="lkrow" data-group="b4"></div>
+      <div class="lklabels"><span>Sin confianza</span><span>Muy confiado/a</span></div>
+    </div>
+
+    <div class="qcard" id="qb5">
+      <div class="qnum">CONFIANZA · 05</div>
+      <div class="qtext">Dirigir verbalmente al equipo (delegar roles, cerrar el ciclo de comunicación) durante la reanimación.</div>
+      <div class="lkrow" data-group="b5"></div>
+      <div class="lklabels"><span>Sin confianza</span><span>Muy confiado/a</span></div>
+    </div>
+
+    <div class="qcard" id="qb6">
+      <div class="qnum">CONFIANZA · 06</div>
+      <div class="qtext">Identificar y manejar una arritmia (TV, FV, bradicardia severa) incluyendo el uso del desfibrilador.</div>
+      <div class="lkrow" data-group="b6"></div>
+      <div class="lklabels"><span>Sin confianza</span><span>Muy confiado/a</span></div>
+    </div>
+
+    <div class="sgap"></div>
+    <div class="sh"><div class="si si-g">🧠</div><div><div class="stitle">Saber hacer · Conocimiento clínico</div><div class="ssub">Seleccione la respuesta que considere correcta</div></div></div>
+
+    <div class="qcard" id="qc1">
+      <div class="qnum">CLÍNICO · 01</div>
+      <div class="qtext">Niño de 8 años en paro. La relación compresión:ventilación con 2 reanimadores sin vía aérea avanzada es:</div>
+      <button class="mcqbtn" data-group="c1" data-val="30:2" onclick="onMCQ(this)"><div class="bullet"></div>30:2 con cualquier número de reanimadores</button>
+      <button class="mcqbtn" data-group="c1" data-val="15:2-vaa" onclick="onMCQ(this)"><div class="bullet"></div>15:2 únicamente con vía aérea avanzada colocada</button>
+      <button class="mcqbtn" data-group="c1" data-val="15:2-correct" onclick="onMCQ(this)"><div class="bullet"></div>15:2 sin vía aérea avanzada / asincrónica con VAA</button>
+      <button class="mcqbtn" data-group="c1" data-val="continuas" onclick="onMCQ(this)"><div class="bullet"></div>Compresiones continuas sin ventilación</button>
+    </div>
+
+    <div class="qcard" id="qc2">
+      <div class="qnum">CLÍNICO · 02</div>
+      <div class="qtext">Lactante de 6 meses (peso 7 kg) en paro. La dosis de adrenalina IV/IO es:</div>
+      <button class="mcqbtn" data-group="c2" data-val="0.7mg" onclick="onMCQ(this)"><div class="bullet"></div>0.7 mg (0.1 mg/kg)</button>
+      <button class="mcqbtn" data-group="c2" data-val="0.07mg-correct" onclick="onMCQ(this)"><div class="bullet"></div>0.07 mg (0.01 mg/kg) — máx 1 mg</button>
+      <button class="mcqbtn" data-group="c2" data-val="1mg-fija" onclick="onMCQ(this)"><div class="bullet"></div>1 mg (dosis fija de adulto)</button>
+      <button class="mcqbtn" data-group="c2" data-val="0.14mg" onclick="onMCQ(this)"><div class="bullet"></div>0.14 mg (0.02 mg/kg)</button>
+    </div>
+
+    <div class="qcard" id="qc3">
+      <div class="qnum">CLÍNICO · 03</div>
+      <div class="qtext">Niño de 4 años: FC 220 lpm, QRS angosto, SIN pulso palpable. Primera acción:</div>
+      <button class="mcqbtn" data-group="c3" data-val="cardioversion" onclick="onMCQ(this)"><div class="bullet"></div>TSVP → cardioversión sincronizada 1 J/kg</button>
+      <button class="mcqbtn" data-group="c3" data-val="rcp-correct" onclick="onMCQ(this)"><div class="bullet"></div>Ritmo sin pulso → RCP de alta calidad de inmediato</button>
+      <button class="mcqbtn" data-group="c3" data-val="adenosina" onclick="onMCQ(this)"><div class="bullet"></div>TSVP → adenosina 0.1 mg/kg IV antes de todo</button>
+      <button class="mcqbtn" data-group="c3" data-val="desfibrilacion" onclick="onMCQ(this)"><div class="bullet"></div>FV → desfibrilación 2 J/kg de inmediato</button>
+    </div>
+
+    <div class="qcard" id="qc4">
+      <div class="qnum">CLÍNICO · 04</div>
+      <div class="qtext">¿Cuál es el signo más temprano de shock en un niño?</div>
+      <button class="mcqbtn" data-group="c4" data-val="hipotension" onclick="onMCQ(this)"><div class="bullet"></div>Hipotensión arterial</button>
+      <button class="mcqbtn" data-group="c4" data-val="taquicardia-correct" onclick="onMCQ(this)"><div class="bullet"></div>Taquicardia con llenado capilar prolongado</button>
+      <button class="mcqbtn" data-group="c4" data-val="bradicardia" onclick="onMCQ(this)"><div class="bullet"></div>Bradicardia severa</button>
+      <button class="mcqbtn" data-group="c4" data-val="cianosis" onclick="onMCQ(this)"><div class="bullet"></div>Cianosis central</button>
+    </div>
+
+    <div class="qcard" id="qc5">
+      <div class="qnum">CLÍNICO · 05</div>
+      <div class="qtext">Niño con bradicardia sintomática (FC &lt; 60 lpm) y mala perfusión. Primera intervención:</div>
+      <button class="mcqbtn" data-group="c5" data-val="atropina" onclick="onMCQ(this)"><div class="bullet"></div>Atropina 0.02 mg/kg IV/IO</button>
+      <button class="mcqbtn" data-group="c5" data-val="via-aerea-correct" onclick="onMCQ(this)"><div class="bullet"></div>Oxigenación y ventilación (soporte de vía aérea)</button>
+      <button class="mcqbtn" data-group="c5" data-val="marcapaso" onclick="onMCQ(this)"><div class="bullet"></div>Marcapaso transcutáneo inmediato</button>
+      <button class="mcqbtn" data-group="c5" data-val="adrenalina-inf" onclick="onMCQ(this)"><div class="bullet"></div>Adrenalina en infusión continua</button>
+    </div>
+
+    <div class="qcard" id="qc6">
+      <div class="qnum">CLÍNICO · 06</div>
+      <div class="qtext">Mnemotécnico que guía la preparación del equipo antes de una intubación de urgencia en pediatría:</div>
+      <button class="mcqbtn" data-group="c6" data-val="abcde" onclick="onMCQ(this)"><div class="bullet"></div>ABCDE</button>
+      <button class="mcqbtn" data-group="c6" data-val="soapme-correct" onclick="onMCQ(this)"><div class="bullet"></div>SOAPME (Succión, O₂, Airway, Posición, Monitor, Equipo)</button>
+      <button class="mcqbtn" data-group="c6" data-val="sample" onclick="onMCQ(this)"><div class="bullet"></div>SAMPLE (historia clínica)</button>
+      <button class="mcqbtn" data-group="c6" data-val="jumpstart" onclick="onMCQ(this)"><div class="bullet"></div>JumpSTART (triage pediátrico)</button>
+    </div>
+
+    <div class="qcard" id="qc7">
+      <div class="qnum">CLÍNICO · 07 — Abierta</div>
+      <div class="qtext">Describa brevemente los pasos que seguiría durante los primeros 2 minutos al recibir un niño en paro en su servicio.</div>
+      <div class="qnote">No hay respuesta única; buscamos conocer su esquema mental actual.</div>
+      <textarea id="c7" rows="4" placeholder="Ej.: Verifico respuesta, llamo al equipo, inicio compresiones…" oninput="onText('c7','qc7')"></textarea>
+    </div>
+
+    <div class="sgap"></div>
+    <div class="sh"><div class="si si-b">💡</div><div><div class="stitle">Necesidades de formación</div><div class="ssub">Ayúdenos a diseñar la intervención más útil</div></div></div>
+
+    <div class="qcard" id="qd1">
+      <div class="qnum">FORMACIÓN · 01</div>
+      <div class="qtext">¿Qué aspecto necesita reforzar con más urgencia?</div>
+      <select id="d1" onchange="onSelect('d1','qd1')">
+        <option value="">— Seleccione —</option>
+        <option value="reconocimiento">Reconocimiento temprano del deterioro</option>
+        <option value="rcp">Técnica de RCP pediátrica</option>
+        <option value="medicamentos">Cálculo de medicamentos de emergencia</option>
+        <option value="via-aerea">Manejo de vía aérea</option>
+        <option value="arritmias">Identificación y manejo de arritmias</option>
+        <option value="liderazgo">Liderazgo y comunicación en equipo</option>
+        <option value="emocional">Manejo emocional propio ante la emergencia</option>
+      </select>
+    </div>
+
+    <div class="qcard" id="qd2">
+      <div class="qnum">FORMACIÓN · 02</div>
+      <div class="qtext">¿Qué formato de capacitación le generaría mayor aprendizaje?</div>
+      <select id="d2" onchange="onSelect('d2','qd2')">
+        <option value="">— Seleccione —</option>
+        <option value="casos">Análisis de casos clínicos reales</option>
+        <option value="taller">Taller de habilidades prácticas en el servicio</option>
+        <option value="video">Videos cortos con puntos clave</option>
+        <option value="guias">Guías de bolsillo / tarjetas de referencia rápida</option>
+        <option value="roleplay">Role-play o dramatización de escenarios</option>
+        <option value="combinado">Combinación de varios formatos</option>
+      </select>
+    </div>
+
+    <div class="qcard" id="qd3">
+      <div class="qnum">FORMACIÓN · 03</div>
+      <div class="qtext">¿Con qué disponibilidad horaria cuenta para actividades de formación?</div>
+      <select id="d3" onchange="onSelect('d3','qd3')">
+        <option value="">— Seleccione —</option>
+        <option value="<30">Menos de 30 minutos por sesión</option>
+        <option value="30-60">30 a 60 minutos</option>
+        <option value="1-2h">1 a 2 horas</option>
+        <option value=">2h">Más de 2 horas</option>
+      </select>
+    </div>
+
+    <div class="qcard" id="qd4">
+      <div class="qnum">FORMACIÓN · 04 — Abierta</div>
+      <div class="qtext">¿Algo más que quiera compartir sobre sus necesidades, miedos o expectativas?</div>
+      <textarea id="d4" rows="3" placeholder="Comentarios libres…" oninput="onText('d4','qd4')"></textarea>
+    </div>
+
+    <div class="errmsg" id="errmsg">⚠️ Por favor complete todas las preguntas obligatorias antes de enviar.</div>
+    <div class="submitbox">
+      <p>Sus respuestas son anónimas y serán utilizadas exclusivamente para diseñar la intervención educativa del equipo.</p>
+      <button class="btnok" id="btnEnviar" onclick="enviar()">Enviar respuestas →</button>
+    </div>
+  </div>
+</div>
+
+<div id="thanks">
+  <div class="chk">✓</div>
+  <h2>¡Gracias por completar el diagnóstico!</h2>
+  <p>Sus respuestas quedaron registradas de forma anónima. El equipo de formación las usará para diseñar un programa adaptado a las necesidades reales del grupo.</p>
+  <p style="margin-top:16px;font-size:13px;color:var(--faint)">Puede cerrar esta ventana.</p>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  CONFIGURACIÓN — reemplazar con sus valores
+// ══════════════════════════════════════════
+const JSONBIN_API_KEY = '$2a$10$yJBW6mob86NQpJ1uZ605EuNJnV3Znw/5Qbuloh1wS4cwb.UJBu9E2';
+const JSONBIN_BIN_ID  = '6a3468e5da38895dfeda0a3c';
+// ══════════════════════════════════════════
+
+const CONFIGURED = !JSONBIN_API_KEY.startsWith('TU_');
+if (CONFIGURED) document.getElementById('cfgBanner').classList.add('hidden');
+
+const A = {};
+const REQUIRED = ['p1','p2','p3','p4','a1','a2','a3','a4','a5','a6','a7','b1','b2','b3','b4','b5','b6','c1','c2','c3','c4','c5','c6','d1','d2','d3'];
+const CORRECT  = {c1:'15:2-correct',c2:'0.07mg-correct',c3:'rcp-correct',c4:'taquicardia-correct',c5:'via-aerea-correct',c6:'soapme-correct'};
+
+// Construir Likerts
+document.querySelectorAll('.lkrow').forEach(row => {
+  const g = row.dataset.group;
+  for (let v = 1; v <= 5; v++) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'lkbtn';
+    btn.textContent = v;
+    btn.dataset.group = g;
+    btn.dataset.val = v;
+    btn.addEventListener('click', function() {
+      row.querySelectorAll('.lkbtn').forEach(b => b.classList.remove('sel'));
+      this.classList.add('sel');
+      A[g] = v;
+      mark('q' + g);
+      update();
+    });
+    row.appendChild(btn);
+  }
+});
+
+function onMCQ(btn) {
+  const g = btn.dataset.group;
+  document.querySelectorAll(`.mcqbtn[data-group="${g}"]`).forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  A[g] = btn.dataset.val;
+  mark('q' + g);
+  update();
+}
+
+function onSelect(field, cardId) {
+  const v = document.getElementById(field).value;
+  if (v) { A[field] = v; mark(cardId); } else { delete A[field]; }
+  update();
+}
+
+function onText(field, cardId) {
+  const v = document.getElementById(field).value.trim();
+  if (v) { A[field] = v; mark(cardId); } else { delete A[field]; }
+  update();
+}
+
+function mark(id) { document.getElementById(id)?.classList.add('done'); }
+
+function update() {
+  const n = REQUIRED.filter(f => A[f] !== undefined && A[f] !== '').length;
+  document.getElementById('pb').style.width = (n / 26 * 100) + '%';
+  document.getElementById('ptxt').textContent = `${n} / 26 preguntas`;
+}
+
+async function enviar() {
+  ['p1','p2','p3','d1','d2','d3'].forEach(f => {
+    const v = document.getElementById(f)?.value;
+    if (v) A[f] = v; else delete A[f];
+  });
+
+  const missing = REQUIRED.filter(f => !A[f]);
+  if (missing.length > 0) {
+    const msg = document.getElementById('errmsg');
+    msg.style.display = 'block';
+    msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  document.getElementById('errmsg').style.display = 'none';
+
+  const btn = document.getElementById('btnEnviar');
+  btn.disabled = true;
+  btn.textContent = 'Guardando…';
+
+  // Calcular scores
+  const serVals = [6-A.a1, A.a2, 6-A.a3, A.a4, A.a5, 6-A.a6, A.a7];
+  const serPct  = Math.round(serVals.reduce((a,b)=>a+b,0) / 35 * 100);
+  const confPct = Math.round([A.b1,A.b2,A.b3,A.b4,A.b5,A.b6].reduce((a,b)=>a+b,0) / 30 * 100);
+  let correctas = 0;
+  Object.entries(CORRECT).forEach(([k,v]) => { if (A[k]===v) correctas++; });
+  const clinPct = Math.round(correctas / 6 * 100);
+
+  const record = {
+    ts: new Date().toISOString(),
+    rol:A.p1, exp:A.p2, freq:A.p3, curso:A.p4,
+    a1:A.a1,a2:A.a2,a3:A.a3,a4:A.a4,a5:A.a5,a6:A.a6,a7:A.a7,
+    inseg_texto:A.a8||'',
+    b1:A.b1,b2:A.b2,b3:A.b3,b4:A.b4,b5:A.b5,b6:A.b6,
+    c1:A.c1,c2:A.c2,c3:A.c3,c4:A.c4,c5:A.c5,c6:A.c6,
+    plan_texto:A.c7||'',
+    serPct, confPct, clinPct, correctas,
+    nec_area:A.d1, nec_formato:A.d2, nec_tiempo:A.d3,
+    comentarios:A.d4||''
+  };
+
+  try {
+    // Leer bin actual
+    const getRes = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+      headers: { 'X-Master-Key': JSONBIN_API_KEY }
+    });
+    const getData = await getRes.json();
+    const existing = (getData.record && Array.isArray(getData.record.respuestas))
+      ? getData.record.respuestas : [];
+    existing.push(record);
+
+    // Guardar bin actualizado (mantiene la estructura {"respuestas": [...]})
+    await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_API_KEY
+      },
+      body: JSON.stringify({ respuestas: existing })
+    });
+
+    document.getElementById('fview').style.display = 'none';
+    document.getElementById('thanks').style.display = 'flex';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Enviar respuestas →';
+    alert('Error al guardar. Verifique su conexión a internet e intente de nuevo.');
+    console.error(e);
+  }
+}
+</script>
+</body>
+</html>
