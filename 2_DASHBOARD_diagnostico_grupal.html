@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard · Diagnóstico Grupal · Urgencias Pediátricas</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+:root{--bg:#F0EEE9;--surface:#fff;--border:#E2DFD8;--text:#1A1917;--muted:#6B6760;--faint:#A09C97;--red:#C0392B;--red-s:#FDECEA;--green:#1E6B45;--green-s:#E8F5EE;--blue:#1B4F8A;--blue-s:#EBF2FB;--amber:#7A4F00;--amber-s:#FDF3DC;--r:10px;--sh:0 2px 16px rgba(0,0,0,.08)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{touch-action:manipulation}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh}
+button{touch-action:manipulation}
+
+.cfg-banner{background:#FFF3CD;border-bottom:2px solid #F0C040;padding:14px 24px;font-size:13px;color:#7A5C00;display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.cfg-banner.hidden{display:none}
+.cfg-banner code{background:rgba(0,0,0,.08);padding:1px 5px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:12px}
+
+.hdr{background:var(--text);color:#fff;padding:24px 32px;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.hlbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#E8B4AF;margin-bottom:6px}
+.hdr h1{font-family:'DM Serif Display',serif;font-size:clamp(18px,3vw,26px);font-weight:400;line-height:1.2}
+.hdr-meta{font-size:12px;color:rgba(255,255,255,.5);margin-top:4px}
+.hdr-btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-hdr{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:9px 16px;min-height:40px;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;transition:.2s ease;white-space:nowrap;touch-action:manipulation}
+.btn-hdr:hover{background:rgba(255,255,255,.2)}
+
+.state{min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px}
+.state-icon{font-size:48px;margin-bottom:16px}
+.state h2{font-family:'DM Serif Display',serif;font-size:24px;font-weight:400;margin-bottom:8px}
+.state p{color:var(--muted);max-width:380px;font-size:14px;line-height:1.5}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.main{max-width:1000px;margin:0 auto;padding:28px 20px 60px}
+
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:28px}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh)}
+.sc .lbl{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin-bottom:6px}
+.sc .big{font-family:'DM Serif Display',serif;font-size:36px;line-height:1;margin-bottom:2px}
+.sc .sub{font-size:12px;color:var(--muted)}
+.cr{color:var(--red)}.ca{color:#C07A00}.cg{color:var(--green)}.cb{color:var(--blue)}
+
+.sec{margin-bottom:32px}
+.sec-title{font-family:'DM Serif Display',serif;font-size:18px;font-weight:400;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+
+.dim-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 22px;margin-bottom:12px;box-shadow:var(--sh)}
+.dim-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.dim-name{font-size:14px;font-weight:600}
+.dim-score{font-family:'DM Serif Display',serif;font-size:26px;line-height:1}
+.bar-bg{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:6px}
+.bar-fill{height:100%;border-radius:4px;transition:width 1.2s ease}
+.dim-sub{font-size:12px;color:var(--muted)}
+.dim-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-top:14px}
+.di{font-size:12px;color:var(--muted)}
+.di .ilbl{font-weight:500;color:var(--text);font-size:13px;margin-bottom:3px}
+.mbar-bg{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:3px}
+.mbar-fill{height:100%;border-radius:3px}
+
+.clin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh)}
+.cc-q{font-size:12px;font-weight:600;margin-bottom:10px}
+.clin-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:12px}
+.clin-lbl{width:150px;flex-shrink:0;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.clin-bg{flex:1;height:14px;background:var(--border);border-radius:4px;overflow:hidden}
+.clin-fill{height:100%;border-radius:4px}
+.clin-pct{width:32px;text-align:right;color:var(--faint);font-family:'JetBrains Mono',monospace;font-size:11px}
+
+.dist-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.dc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh)}
+.dc .dtitle{font-size:13px;font-weight:600;margin-bottom:10px}
+.ditem{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px;color:var(--muted)}
+.ditem .dk{width:120px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dbar-bg{flex:1;height:12px;background:var(--border);border-radius:3px;overflow:hidden}
+.dbar-fill{height:100%;border-radius:3px;background:var(--blue)}
+.dn{width:20px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px}
+
+.rec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.rc{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh)}
+.rc.p{border-left-color:var(--red)}.rc.m{border-left-color:#C07A00}.rc.ok{border-left-color:var(--green)}
+.rtag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:4px;margin-bottom:8px}
+.tr{background:var(--red-s);color:var(--red)}.ta{background:var(--amber-s);color:var(--amber)}.tg{background:var(--green-s);color:var(--green)}
+.rc h4{font-size:13px;font-weight:600;margin-bottom:6px}
+.rc p{font-size:12px;color:var(--muted);line-height:1.5}
+
+.olist{list-style:none}
+.olist li{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px 12px 30px;margin-bottom:8px;font-size:13px;color:var(--muted);line-height:1.5;position:relative}
+.olist li::before{content:'"';position:absolute;left:10px;top:8px;font-family:'DM Serif Display',serif;font-size:22px;color:var(--red);line-height:1}
+
+.btn-x{background:var(--surface);color:var(--text);border:1.5px solid var(--border);padding:10px 20px;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:.2s ease;margin-right:10px;margin-top:8px}
+.btn-x:hover{border-color:var(--red);color:var(--red)}
+
+@media(max-width:600px){.hdr{padding:18px 16px}.main{padding:20px 12px 50px}}
+</style>
+</head>
+<body>
+
+<div class="cfg-banner" id="cfgBanner">
+  ⚙️ <strong>Configuración pendiente:</strong> Abra este archivo en un editor y reemplace <code>TU_API_KEY_JSONBIN</code> y <code>TU_BIN_ID</code> con sus valores reales. Deben coincidir con los del archivo del test.
+</div>
+
+<div class="hdr">
+  <div>
+    <div class="hlbl">Dashboard · Hospital Regional de Zipaquirá</div>
+    <h1>Diagnóstico Grupal — Urgencias Pediátricas</h1>
+    <div class="hdr-meta" id="hdrmeta">Cargando datos…</div>
+  </div>
+  <div class="hdr-btns">
+    <button class="btn-hdr" onclick="load()">↺ Actualizar</button>
+    <button class="btn-hdr" onclick="exportCSV()">⬇ CSV</button>
+    <button class="btn-hdr" onclick="window.print()">🖨️ PDF</button>
+  </div>
+</div>
+
+<div id="scLoading" class="state"><div class="spinner"></div><h2>Cargando respuestas</h2><p>Consultando la base de datos…</p></div>
+<div id="scEmpty" class="state" style="display:none"><div class="state-icon">📭</div><h2>Aún no hay respuestas</h2><p>Cuando los participantes completen el test, los datos aparecerán aquí. Haga clic en "Actualizar" para verificar.</p></div>
+<div id="scCfg" class="state" style="display:none"><div class="state-icon">⚙️</div><h2>Configuración requerida</h2><p>Abra este archivo en un editor de texto y reemplace <strong>TU_API_KEY_JSONBIN</strong> y <strong>TU_BIN_ID</strong> con sus valores reales de JSONBin.io</p></div>
+<div id="dashboard" style="display:none">
+<div class="main">
+  <div class="stat-row" id="kpis"></div>
+  <div class="sec"><div class="sec-title"><span>📊</span>Resultados por dimensión</div><div id="dims"></div></div>
+  <div class="sec"><div class="sec-title"><span>🧠</span>Conocimiento clínico — por pregunta</div><div class="clin-grid" id="clin"></div></div>
+  <div class="sec"><div class="sec-title"><span>👥</span>Perfil del grupo</div><div class="dist-row" id="perfil"></div></div>
+  <div class="sec"><div class="sec-title"><span>💡</span>Necesidades declaradas</div><div class="dist-row" id="needs"></div></div>
+  <div class="sec"><div class="sec-title"><span>🎯</span>Recomendaciones estratégicas</div><div class="rec-grid" id="recs"></div></div>
+  <div class="sec"><div class="sec-title"><span>💬</span>Fuentes de inseguridad — respuestas abiertas</div><ul class="olist" id="open"></ul></div>
+  <div style="margin-top:4px">
+    <button class="btn-x" onclick="window.print()">🖨️ Imprimir / PDF</button>
+    <button class="btn-x" onclick="exportCSV()">⬇ Exportar CSV</button>
+  </div>
+</div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  CONFIGURACIÓN — mismos valores que el test
+// ══════════════════════════════════════════
+const JSONBIN_API_KEY = '$2a$10$yJBW6mob86NQpJ1uZ605EuNJnV3Znw/5Qbuloh1wS4cwb.UJBu9E2';
+const JSONBIN_BIN_ID  = '6a3468e5da38895dfeda0a3c';
+// ══════════════════════════════════════════
+
+const CONFIGURED = !JSONBIN_API_KEY.startsWith('TU_');
+if (CONFIGURED) document.getElementById('cfgBanner').classList.add('hidden');
+
+const CORRECT = {c1:'15:2-correct',c2:'0.07mg-correct',c3:'rcp-correct',c4:'taquicardia-correct',c5:'via-aerea-correct',c6:'soapme-correct'};
+const CQ_LABELS = {c1:'Relación compresión:ventilación',c2:'Dosis adrenalina (lactante 7 kg)',c3:'Ritmo sin pulso — primera acción',c4:'Signo temprano de shock',c5:'Bradicardia sintomática',c6:'Mnemotécnico intubación urgencia'};
+const CQ_OPTS = {
+  c1:[['30:2 (cualquier reanimador)','30:2'],['15:2 con VAA','15:2-vaa'],['15:2 sin VAA ✓','15:2-correct'],['Compresiones continuas','continuas']],
+  c2:[['0.7 mg (0.1 mg/kg)','0.7mg'],['0.07 mg ✓','0.07mg-correct'],['1 mg fija','1mg-fija'],['0.14 mg','0.14mg']],
+  c3:[['Cardioversión sinc.','cardioversion'],['RCP inmediata ✓','rcp-correct'],['Adenosina','adenosina'],['Desfibrilación','desfibrilacion']],
+  c4:[['Hipotensión','hipotension'],['Taquicardia + llenado ✓','taquicardia-correct'],['Bradicardia','bradicardia'],['Cianosis','cianosis']],
+  c5:[['Atropina','atropina'],['Oxigenación/ventilación ✓','via-aerea-correct'],['Marcapaso','marcapaso'],['Adrenalina inf.','adrenalina-inf']],
+  c6:[['ABCDE','abcde'],['SOAPME ✓','soapme-correct'],['SAMPLE','sample'],['JumpSTART','jumpstart']]
+};
+
+function avg(arr){return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0}
+function pct(n,t){return t?Math.round(n/t*100):0}
+function col(p){return p>=70?'var(--green)':p>=45?'#C07A00':'var(--red)'}
+function cls(p){return p>=70?'cg':p>=45?'ca':'cr'}
+function lbl(p){return p>=70?'Fortaleza grupal':p>=45?'Área a reforzar':'Zona crítica'}
+function distCount(arr,f){const m={};arr.forEach(r=>{const v=r[f]||'N/D';m[v]=(m[v]||0)+1});return m}
+
+let _records = [];
+
+async function load() {
+  show('scLoading');
+  if (!CONFIGURED) { show('scCfg'); return; }
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+      headers: { 'X-Master-Key': JSONBIN_API_KEY }
+    });
+    const data = await res.json();
+    _records = (data.record && Array.isArray(data.record.respuestas))
+      ? data.record.respuestas : [];
+  } catch(e) {
+    _records = [];
+    console.error(e);
+  }
+  if (!_records.length) { show('scEmpty'); return; }
+  render(_records);
+  show('dashboard');
+}
+
+function show(id) {
+  ['scLoading','scEmpty','scCfg','dashboard'].forEach(i => {
+    document.getElementById(i).style.display = i===id ? (i==='dashboard'?'block':'flex') : 'none';
+  });
+}
+
+function render(R) {
+  const N = R.length;
+  const now = new Date().toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'});
+  document.getElementById('hdrmeta').textContent = `${N} respuesta${N!==1?'s':''} · Actualizado ${now}`;
+
+  // KPIs
+  const serAvg  = Math.round(avg(R.map(r=>r.serPct)));
+  const confAvg = Math.round(avg(R.map(r=>r.confPct)));
+  const clinAvg = Math.round(avg(R.map(r=>r.clinPct)));
+  const criticos = R.filter(r=>r.serPct<50||r.confPct<50||r.clinPct<50).length;
+  document.getElementById('kpis').innerHTML = `
+    <div class="sc"><div class="lbl">Participantes</div><div class="big cb">${N}</div><div class="sub">respuestas recibidas</div></div>
+    <div class="sc"><div class="lbl">Saber ser</div><div class="big ${cls(serAvg)}">${serAvg}%</div><div class="sub">promedio grupal</div></div>
+    <div class="sc"><div class="lbl">Autoconfianza</div><div class="big ${cls(confAvg)}">${confAvg}%</div><div class="sub">promedio grupal</div></div>
+    <div class="sc"><div class="lbl">Conocimiento</div><div class="big ${cls(clinAvg)}">${clinAvg}%</div><div class="sub">promedio grupal</div></div>
+    <div class="sc"><div class="lbl">Zona crítica</div><div class="big ${criticos>0?'cr':'cg'}">${criticos}</div><div class="sub">personas con ≥1 dim. baja</div></div>`;
+
+  // Dimensiones
+  const dimDefs = [
+    { name:'Saber ser', fields:['a1','a2','a3','a4','a5','a6','a7'], inv:[0,2,5],
+      items:{a1:'Respuesta emocional intensa (inv.)',a2:'Seguridad como líder',a3:'Miedo al juicio de pares (inv.)',a4:'Procesamiento emocional',a5:'Confianza en el entrenamiento',a6:'Preferencia rol secundario (inv.)',a7:'Disposición a participar'} },
+    { name:'Autoconfianza', fields:['b1','b2','b3','b4','b5','b6'], inv:[],
+      items:{b1:'Reconocimiento falla respiratoria',b2:'RCP de alta calidad',b3:'Cálculo adrenalina',b4:'Manejo vía aérea',b5:'Liderazgo verbal equipo',b6:'Arritmias y desfibrilador'} }
+  ];
+
+  let dimsHTML = '';
+  dimDefs.forEach(d => {
+    const scores = R.map(r => {
+      const vals = d.fields.map((f,i) => d.inv.includes(i) ? 6-(r[f]||3) : (r[f]||3));
+      return vals.reduce((a,b)=>a+b,0) / (d.fields.length*5) * 100;
+    });
+    const p = Math.round(avg(scores));
+    const items = d.fields.map(f => {
+      const fp = Math.round(avg(R.map(r=>r[f]||3))/5*100);
+      return `<div class="di"><div class="ilbl">${d.items[f]}</div>
+        <div class="mbar-bg"><div class="mbar-fill" style="width:${fp}%;background:${col(fp)}"></div></div>
+        <div style="font-size:11px;color:var(--faint)">${fp}%</div></div>`;
+    }).join('');
+    dimsHTML += `<div class="dim-block">
+      <div class="dim-hdr"><div class="dim-name">${d.name}</div><div class="dim-score" style="color:${col(p)}">${p}%</div></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${p}%;background:${col(p)}"></div></div>
+      <div class="dim-sub">${lbl(p)}</div>
+      <div class="dim-items">${items}</div></div>`;
+  });
+
+  // Conocimiento como dimensión
+  const clinP = Math.round(avg(R.map(r=>r.clinPct)));
+  const clinItems = Object.entries(CORRECT).map(([k,v]) => {
+    const cn = R.filter(r=>r[k]===v).length;
+    const fp = pct(cn,N);
+    return `<div class="di"><div class="ilbl">${CQ_LABELS[k]}</div>
+      <div class="mbar-bg"><div class="mbar-fill" style="width:${fp}%;background:${col(fp)}"></div></div>
+      <div style="font-size:11px;color:var(--faint)">${cn}/${N} (${fp}%)</div></div>`;
+  }).join('');
+  dimsHTML += `<div class="dim-block">
+    <div class="dim-hdr"><div class="dim-name">Conocimiento clínico (MCQ)</div><div class="dim-score" style="color:${col(clinP)}">${clinP}%</div></div>
+    <div class="bar-bg"><div class="bar-fill" style="width:${clinP}%;background:${col(clinP)}"></div></div>
+    <div class="dim-sub">${lbl(clinP)}</div>
+    <div class="dim-items">${clinItems}</div></div>`;
+  document.getElementById('dims').innerHTML = dimsHTML;
+
+  // Clínico detalle
+  document.getElementById('clin').innerHTML = Object.entries(CQ_OPTS).map(([k,opts]) => {
+    const cn = R.filter(r=>r[k]===CORRECT[k]).length;
+    const rows = opts.map(([label,val]) => {
+      const n = R.filter(r=>r[k]===val).length;
+      const p = pct(n,N);
+      const isc = CORRECT[k]===val;
+      return `<div class="clin-row">
+        <div class="clin-lbl" title="${label}" style="${isc?'font-weight:600;color:var(--green)':''}">${label}</div>
+        <div class="clin-bg"><div class="clin-fill" style="width:${p}%;background:${isc?'var(--green)':n>0?'var(--red)':'var(--border)'}"></div></div>
+        <div class="clin-pct">${p}%</div></div>`;
+    }).join('');
+    return `<div class="cc"><div class="cc-q">${CQ_LABELS[k]}<br><span style="font-weight:400;color:var(--faint)">${cn}/${N} correctas (${pct(cn,N)}%)</span></div>${rows}</div>`;
+  }).join('');
+
+  // Perfil
+  function distCard(title, field, map) {
+    const counts = distCount(R,field);
+    const rows = Object.entries(map).map(([k,lbl]) => {
+      const n = counts[k]||0; const p = pct(n,N);
+      return `<div class="ditem"><div class="dk">${lbl}</div>
+        <div class="dbar-bg"><div class="dbar-fill" style="width:${p}%"></div></div>
+        <div class="dn">${n}</div></div>`;
+    }).join('');
+    return `<div class="dc"><div class="dtitle">${title}</div>${rows}</div>`;
+  }
+  document.getElementById('perfil').innerHTML =
+    distCard('Rol profesional','rol',{medico:'Médico general',jefe_enf:'Jefe enfermería',terapeuta:'Terapeuta resp.',otro:'Otro'}) +
+    distCard('Experiencia','exp',{'<1':'< 1 año','1-3':'1–3 años','4-7':'4–7 años','>7':'> 7 años'}) +
+    distCard('Exposición emergencias ped.','freq',{nunca:'Nunca','1-2':'1–2 veces','3-5':'3–5 veces','>5':'> 5 veces'}) +
+    distCard('Certificación reanimación','curso',{vigente:'Sí, vigente',vencido:'Sí, vencido',no:'No'});
+
+  document.getElementById('needs').innerHTML =
+    distCard('Área de mayor necesidad','nec_area',{reconocimiento:'Reconocimiento',rcp:'RCP',medicamentos:'Medicamentos','via-aerea':'Vía aérea',arritmias:'Arritmias',liderazgo:'Liderazgo',emocional:'Manejo emocional'}) +
+    distCard('Formato preferido','nec_formato',{casos:'Casos clínicos',taller:'Taller práctico',video:'Videos',guias:'Guías bolsillo',roleplay:'Role-play',combinado:'Combinado'}) +
+    distCard('Disponibilidad horaria','nec_tiempo',{'<30':'< 30 min','30-60':'30–60 min','1-2h':'1–2 horas','>2h':'> 2 horas'});
+
+  // Recomendaciones
+  const rr = [];
+  const push = (cls,tag,tl,h,p) => rr.push({cls,tag,tl,h,p});
+
+  if(serAvg<50) push('p','tr','Prioridad alta','Intervención en regulación emocional',`Promedio de ${serAvg}% en saber ser. Iniciar con técnicas de reconocimiento del miedo como señal funcional y respiración táctica antes de cualquier contenido clínico.`);
+  else if(serAvg<70) push('m','ta','Refuerzo','Fortalecer seguridad emocional en rol de líder',`Promedio ${serAvg}%. Inseguridad moderada al liderar. Role-play y debriefing estructurado son intervenciones eficaces.`);
+  else push('ok','tg','Fortaleza','Buena base emocional grupal',`Promedio ${serAvg}%. El grupo muestra actitud positiva hacia la formación.`);
+
+  if(confAvg<50) push('p','tr','Prioridad alta','Talleres de habilidades prácticas en el servicio',`Autoconfianza promedio ${confAvg}%. Repetición supervisada de RCP, vía aérea y cálculo de dosis en tiempo real.`);
+  else if(confAvg<70) push('m','ta','Refuerzo','Consolidar confianza en arritmias y liderazgo',`Promedio ${confAvg}%. Casos comentados y simulaciones cortas pueden cerrar esta brecha.`);
+  else push('ok','tg','Fortaleza','Autoconfianza adecuada en habilidades clave',`Promedio ${confAvg}%. Enfóquese en mantenimiento y actualización de guías.`);
+
+  if(clinAvg<50) push('p','tr','Prioridad alta','Actualización urgente en protocolos AHA/AAP',`Solo ${clinAvg}% de respuestas correctas. Guías de bolsillo + revisión de algoritmos junto a las camillas.`);
+  else if(clinAvg<70) push('m','ta','Refuerzo','Reforzar puntos con mayor tasa de error',`${clinAvg}% de conocimiento correcto. Revisar preguntas con menor acierto con casos clínicos comentados.`);
+  else push('ok','tg','Fortaleza','Buen dominio del conocimiento clínico',`${clinAvg}% correcto. Bases sólidas. Siguiente nivel: arritmias y comunicación en equipo.`);
+
+  const topNeed = Object.entries(distCount(R,'nec_area')).sort((a,b)=>b[1]-a[1])[0];
+  if(topNeed){
+    const nm = {reconocimiento:'Reconocimiento temprano',rcp:'RCP pediátrica',medicamentos:'Cálculo medicamentos','via-aerea':'Vía aérea',arritmias:'Arritmias',liderazgo:'Liderazgo/comunicación',emocional:'Manejo emocional'};
+    push('m','ta','Necesidad declarada',`"${nm[topNeed[0]]||topNeed[0]}" — área más solicitada`,`${topNeed[1]} de ${N} participantes (${pct(topNeed[1],N)}%) la señalaron. Debe tener lugar prioritario en el cronograma.`);
+  }
+
+  const sinCert = R.filter(r=>r.curso==='no'||r.curso==='vencido').length;
+  if(sinCert>0) push('m','ta','Certificación',`${sinCert} persona${sinCert>1?'s':''} sin certificación vigente`,`Gestionar curso PALS o sesión de actualización basada en guías AHA/AAP como complemento al programa.`);
+
+  const topFmt = Object.entries(distCount(R,'nec_formato')).sort((a,b)=>b[1]-a[1])[0];
+  if(topFmt){
+    const fm={casos:'análisis de casos clínicos',taller:'talleres prácticos',video:'videos cortos',guias:'guías de bolsillo',roleplay:'role-play',combinado:'formato combinado'};
+    push('ok','tg','Formato recomendado',`El grupo prefiere ${fm[topFmt[0]]||topFmt[0]}`,`${topFmt[1]} de ${N} participantes eligieron este formato. Prioricelo para maximizar adherencia.`);
+  }
+
+  document.getElementById('recs').innerHTML = rr.map(r =>
+    `<div class="rc ${r.cls}"><span class="rtag ${r.tag}">${r.tl}</span><h4>${r.h}</h4><p>${r.p}</p></div>`).join('');
+
+  // Respuestas abiertas
+  const texts = R.map(r=>r.inseg_texto).filter(t=>t&&t.trim().length>3);
+  document.getElementById('open').innerHTML = texts.length
+    ? texts.map(t=>`<li>${t.trim()}</li>`).join('')
+    : '<li style="font-style:italic;padding-left:16px">Ningún participante respondió esta pregunta aún.</li>';
+}
+
+function exportCSV() {
+  if (!_records.length) return;
+  const fields = ['ts','rol','exp','freq','curso','a1','a2','a3','a4','a5','a6','a7','b1','b2','b3','b4','b5','b6','c1','c2','c3','c4','c5','c6','d1','d2','d3','serPct','confPct','clinPct','correctas'];
+  const csv = [fields.join(','), ..._records.map(r => fields.map(f => `"${String(r[f]??'').replace(/"/g,'""')}"`).join(','))].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'diagnostico_urgencias.csv';
+  a.click();
+}
+
+load();
+</script>
+</body>
+</html>
